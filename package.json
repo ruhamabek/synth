@@ -1,45 +1,46 @@
 {
-  "name": "synth",
-  "private": true,
-  "workspaces": {
-    "packages": [
-      "apps/*",
-      "packages/*"
-    ],
-    "catalog": {
-      "dotenv": "^17.2.2",
-      "zod": "^4.1.13",
-      "typescript": "^5",
-      "@types/node": "^22.13.14",
-      "@prisma/client": "^7.2.0",
-      "better-auth": "^1.4.18",
-      "@polar-sh/better-auth": "^1.6.4"
-    }
-  },
-  "type": "module",
-  "scripts": {
-    "dev": "turbo dev",
-    "build": "turbo build",
-    "check-types": "turbo check-types",
-    "dev:native": "turbo -F native dev",
-    "dev:web": "turbo -F web dev",
-    "db:push": "turbo -F @synth/db db:push",
-    "db:studio": "turbo -F @synth/db db:studio",
-    "db:generate": "turbo -F @synth/db db:generate",
-    "db:migrate": "turbo -F @synth/db db:migrate",
-    "check": "biome check --write ."
-  },
-  "dependencies": {
-    "@synth/env": "workspace:*",
-    "dotenv": "catalog:",
-    "zod": "catalog:"
-  },
-  "devDependencies": {
-    "@biomejs/biome": "^2.2.0",
-    "@synth/config": "workspace:*",
-    "@types/node": "catalog:",
-    "turbo": "^2.6.3",
-    "typescript": "catalog:"
-  },
-  "packageManager": "bun@1.3.4"
+	"name": "synth",
+	"private": true,
+	"workspaces": {
+		"packages": [
+			"apps/*",
+			"packages/*"
+		],
+		"catalog": {
+			"dotenv": "^17.2.2",
+			"zod": "^4.1.13",
+			"typescript": "^5",
+			"@types/node": "^22.13.14",
+			"@prisma/client": "^7.2.0",
+			"better-auth": "^1.4.18",
+			"@polar-sh/better-auth": "^1.6.4"
+		}
+	},
+	"type": "module",
+	"scripts": {
+		"dev": "turbo dev",
+		"build": "turbo build",
+		"check-types": "turbo check-types",
+		"dev:native": "turbo -F native dev",
+		"dev:web": "turbo -F web dev",
+		"db:push": "turbo -F @synth/db db:push",
+		"db:studio": "turbo -F @synth/db db:studio",
+		"db:generate": "turbo -F @synth/db db:generate",
+		"db:migrate": "turbo -F @synth/db db:migrate",
+		"db:introspect": "bun run packages/synth-core/src/utils/test-introspection.ts",
+		"check": "biome check --write ."
+	},
+	"dependencies": {
+		"@synth/env": "workspace:*",
+		"dotenv": "catalog:",
+		"zod": "catalog:"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.2.0",
+		"@synth/config": "workspace:*",
+		"@types/node": "catalog:",
+		"turbo": "^2.6.3",
+		"typescript": "catalog:"
+	},
+	"packageManager": "bun@1.3.4"
 }
