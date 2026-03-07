@@ -1,5 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { basename, join } from "node:path";
+import type { AIProvider } from "../ai/config.js";
 import {
 	getAllProviders,
 	getAvailableModels,
@@ -57,72 +58,71 @@ export async function runInit() {
 			"Please enter a valid postgres:// or postgresql:// URL.",
 		);
 
-		console.log("\nAI provider:");
-		const providers = getAllProviders();
-		const providerOptions = providers.map(
-			(p) => `${getProviderName(p)} (${p})`,
-		);
-		providerOptions.forEach((option, index) => {
-			console.log(`  [${index + 1}] ${option}`);
-		});
-
-		const providerInput = await promptRadioOption(
+		const enableAI = await prompt(
 			rl,
-			"Select provider (default: 1): ",
-			providers,
-			0,
+			"Enable AI feature? (Y/n, default: Y): ",
+			false,
+			"Y",
 		);
-		const provider = parseProviderInput(providerInput);
+		const shouldSkipAI = enableAI.toUpperCase() !== "Y";
 
-		console.log(`\nAI model for ${getProviderName(provider)}:`);
-		const models = getAvailableModels(provider);
-		const defaultModel = getDefaultModelForProvider(provider);
-		models.forEach((model, index) => {
-			const marker = model === defaultModel ? " (default)" : "";
-			console.log(`  [${index + 1}] ${model}${marker}`);
-		});
+		let provider: AIProvider | undefined;
+		let apiKey: string | undefined;
+		let model: string | undefined;
+		let baseUrl: string | undefined;
 
-		const apiKey = await promptSecret(rl, `API key for ${provider}: `);
-		if (!apiKey) {
-			throw new Error("AI API key is required.");
+		if (!shouldSkipAI) {
+			console.log("\nAI provider:");
+			const providers = getAllProviders();
+			const providerOptions = providers.map(
+				(p) => `${getProviderName(p)} (${p})`,
+			);
+			providerOptions.forEach((option, index) => {
+				console.log(`  [${index + 1}] ${option}`);
+			});
+
+			const providerInput = await promptRadioOption(
+				rl,
+				"Select provider (default: 1): ",
+				providers,
+				0,
+			);
+			provider = parseProviderInput(providerInput);
+
+			apiKey = await promptSecret(rl, `API key for ${provider}: `);
+			if (!apiKey) {
+				throw new Error("AI API key is required.");
+			}
+			console.log(`\nAI model for ${getProviderName(provider)}:`);
+			const models = getAvailableModels(provider);
+			const defaultModel = getDefaultModelForProvider(provider);
+			models.forEach((modelOption, index) => {
+				const marker = modelOption === defaultModel ? " (default)" : "";
+				console.log(`  [${index + 1}] ${modelOption}${marker}`);
+			});
+
+			const defaultModelIndex = models.indexOf(defaultModel);
+			model = await promptRadioOption(
+				rl,
+				"Select model (default: 1): ",
+				models,
+				defaultModelIndex >= 0 ? defaultModelIndex : 0,
+			);
+
+			baseUrl = await prompt(
+				rl,
+				"Custom base URL (optional, press Enter to skip): ",
+				false,
+				"",
+			);
 		}
 
-		const defaultModelIndex = models.indexOf(defaultModel);
-		const model = await promptRadioOption(
-			rl,
-			"Select model (default: 1): ",
-			models,
-			defaultModelIndex >= 0 ? defaultModelIndex : 0,
-		);
-
-		const baseUrl = await prompt(
-			rl,
-			"Custom base URL (optional, press Enter to skip): ",
-			false,
-			"",
-		);
-
-		console.log("\n[1/4] Validating database connection...");
 		const dbValidation = await validateDatabaseConnection(databaseUrl);
 		console.log(
 			`✓ Connected to database "${dbValidation.database}" successfully.`,
 		);
 
-		const skipAIValidation = await prompt(
-			rl,
-			"Skip AI credential validation? (y/N, default: N): ",
-			false,
-			"N",
-		);
-
-		if (skipAIValidation.toUpperCase() === "Y") {
-			console.log("⚠ Skipping AI validation - credentials not verified");
-		} else {
-			console.log("\n[2/4] Validating AI provider credentials...");
-			console.log(`  Provider: ${getProviderName(provider)}`);
-			console.log(`  Model: ${model}`);
-			console.log("  Testing API connectivity...");
-
+		if (!shouldSkipAI && provider && apiKey && model) {
 			const validationResult = await validateAICredentialsWithSDK({
 				provider,
 				apiKey,
@@ -141,8 +141,6 @@ export async function runInit() {
 			);
 		}
 
-		console.log("\n[3/4] Introspecting database schema...");
-		console.log("  Querying tables and columns...");
 		const metadata = await introspectDatabase(
 			databaseUrl,
 			dbValidation.database,
@@ -152,28 +150,29 @@ export async function runInit() {
 		);
 
 		const ROOT_DIR = resolveRootDir();
-		console.log("\n[4/4] Creating project files...");
+
 		const projectDir = join(ROOT_DIR, projectName);
 		const { mkdir } = await import("node:fs/promises");
 		await mkdir(projectDir, { recursive: true });
-		console.log(`  Created directory: ${projectDir}`);
 
 		const config: CLIConfig = {
 			version: 1,
 			projectName,
 			databaseUrl,
-			ai: {
-				provider,
-				apiKey,
-				model,
-				baseUrl: baseUrl || undefined,
-			},
+			ai:
+				shouldSkipAI || !provider
+					? undefined
+					: {
+							provider,
+							apiKey: apiKey || "",
+							model: model || "",
+							baseUrl: baseUrl || undefined,
+						},
 			createdAt: new Date().toISOString(),
 		};
 
-		console.log("  Writing config.json...");
 		await writeSecureJson(join(projectDir, "config.json"), config);
-		console.log("  Writing schema.json...");
+
 		const { writeFile } = await import("node:fs/promises");
 		await writeFile(
 			join(projectDir, "schema.json"),
@@ -181,8 +180,7 @@ export async function runInit() {
 			"utf8",
 		);
 
-		console.log(`\n✓ Saved local project to ${projectDir}`);
-		console.log("\nStarting local dashboard server...");
+		console.log("✓ Created local project");
 		await startServer(projectDir, config, metadata);
 	} finally {
 		rl.close();

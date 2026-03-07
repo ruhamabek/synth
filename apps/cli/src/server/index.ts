@@ -70,7 +70,6 @@ export async function startServer(
 
 	const localUrl = `http://localhost:${server.port}`;
 	console.log(`\nSynth local dashboard: ${localUrl}`);
-	console.log(`Tables: ${localUrl}/tables`);
 	console.log("Press Ctrl+C to stop.\n");
 
 	process.on("SIGINT", () => {

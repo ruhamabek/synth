@@ -1,4 +1,4 @@
-/** biome-ignore-all lint/a11y/noLabelWithoutControl: <explanation> */
+/** biome-ignore-all lint/a11y/noLabelWithoutControl: The label is not directly associated with an input because it's a custom component */
 "use client";
 
 import type * as React from "react";

@@ -12,7 +12,7 @@ export type CLIConfig = {
 	version: 1;
 	projectName: string;
 	databaseUrl: string;
-	ai: {
+	ai?: {
 		provider: AIProvider;
 		apiKey: string;
 		model: string;
