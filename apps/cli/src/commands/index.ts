@@ -38,11 +38,11 @@ export function printUsage() {
 function getDatabasePromptMessage(dbType: DatabaseType): string {
 	switch (dbType) {
 		case "sqlite":
-			return "SQLite file path (e.g., ./data.db): ";
+			return "SQLite file path: ";
 		case "postgres":
-			return "Postgres database URL (e.g., postgres://user:pass@localhost/db): ";
+			return "Postgres database URL: ";
 		case "mysql":
-			return "MySQL database URL (e.g., mysql://user:pass@localhost/db): ";
+			return "MySQL database URL: ";
 	}
 }
 
@@ -67,7 +67,7 @@ export async function runInit() {
 		);
 		const projectNameInput = await prompt(
 			rl,
-			`Project name (default: ${defaultProjectName}): `,
+			"Project name: ",
 			false,
 			defaultProjectName,
 		);
