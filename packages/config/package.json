@@ -1,5 +1,29 @@
 {
 	"name": "@synth/config",
-	"version": "0.0.0",
-	"private": true
+	"version": "0.1.0",
+	"type": "module",
+	"main": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"default": "./dist/index.js"
+		},
+		"./tsconfig.base.json": "./tsconfig.base.json"
+	},
+	"scripts": {
+		"build": "tsup src/index.ts --format esm --dts",
+		"dev": "tsup src/index.ts --format esm --dts --watch",
+		"test": "vitest",
+		"check-types": "tsc --noEmit"
+	},
+	"dependencies": {
+		"zod": "catalog:"
+	},
+	"devDependencies": {
+		"@types/node": "catalog:",
+		"tsup": "^8.0.1",
+		"typescript": "catalog:",
+		"vitest": "^1.2.0"
+	}
 }
