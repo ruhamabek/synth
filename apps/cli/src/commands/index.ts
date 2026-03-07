@@ -224,7 +224,7 @@ export async function runInit() {
 		);
 
 		console.log("✓ Created local project");
-		await startServer(projectDir, config, metadata);
+		await startServer(metadata);
 	} finally {
 		rl.close();
 	}
@@ -249,12 +249,11 @@ export async function runStart(projectNameArg?: string) {
 		throw new Error(`Project "${projectName}" not found in ${ROOT_DIR}.`);
 	}
 
-	const config = JSON.parse(await readFile(configPath, "utf8")) as CLIConfig;
 	const metadata = JSON.parse(
 		await readFile(schemaPath, "utf8"),
 	) as SchemaMetadata;
 
-	await startServer(projectDir, config, metadata);
+	await startServer(metadata);
 }
 
 function resolveRootDir() {

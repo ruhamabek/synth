@@ -26,11 +26,7 @@ export function baseStyles() {
   `;
 }
 
-export function renderDashboardPage(
-	metadata: SchemaMetadata,
-	projectName: string,
-	projectDir: string,
-) {
+export function renderDashboardPage(metadata: SchemaMetadata) {
 	const distinctSchemas = new Set(metadata.tables.map((table) => table.schema))
 		.size;
 	const estimatedRows = metadata.tables.reduce(
@@ -64,8 +60,8 @@ export function renderDashboardPage(
   </head>
   <body>
     <header>
-      <h1>${escapeHTML(projectName)} Dashboard</h1>
-      <nav><a href="/">Dashboard</a> <a href="/tables">Tables</a> <a href="/api/schema">Schema JSON</a></nav>
+      <h1>synth</h1>
+      <nav><a href="/">Dashboard</a> <a href="/tables">Tables</a></nav>
     </header>
     <main>
       <section class="cards">
@@ -85,20 +81,12 @@ export function renderDashboardPage(
         </table>
       </section>
 
-      <section>
-        <h3>Project</h3>
-        <p><strong>Location:</strong> ${escapeHTML(projectDir)}</p>
-        <p><strong>Generated:</strong> ${escapeHTML(metadata.generatedAt)}</p>
-      </section>
     </main>
   </body>
   </html>`;
 }
 
-export function renderTablesPage(
-	metadata: SchemaMetadata,
-	projectName: string,
-) {
+export function renderTablesPage(metadata: SchemaMetadata) {
 	const rows = metadata.tables
 		.map(
 			(table) => `
@@ -123,7 +111,7 @@ export function renderTablesPage(
   </head>
   <body>
     <header>
-      <h1>${escapeHTML(projectName)} Tables</h1>
+      <h1>synth</h1>
       <nav><a href="/">Dashboard</a> <a href="/tables">Tables</a></nav>
     </header>
     <main>
@@ -138,7 +126,7 @@ export function renderTablesPage(
   </html>`;
 }
 
-export function renderTableDetailPage(table: TableMeta, projectName: string) {
+export function renderTableDetailPage(table: TableMeta) {
 	const rows = table.columns
 		.map(
 			(column) => `
@@ -162,7 +150,7 @@ export function renderTableDetailPage(table: TableMeta, projectName: string) {
   </head>
   <body>
     <header>
-      <h1>${escapeHTML(projectName)}: ${escapeHTML(table.schema)}.${escapeHTML(table.name)}</h1>
+      <h1>synth</h1>
       <nav><a href="/">Dashboard</a> <a href="/tables">Tables</a></nav>
     </header>
     <main>

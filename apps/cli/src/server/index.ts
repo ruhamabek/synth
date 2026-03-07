@@ -1,4 +1,4 @@
-import type { CLIConfig, SchemaMetadata } from "../lib/types.js";
+import type { SchemaMetadata } from "../lib/types.js";
 import {
 	renderDashboardPage,
 	renderTableDetailPage,
@@ -31,11 +31,7 @@ export function htmlResponse(body: string) {
 	});
 }
 
-export async function startServer(
-	projectDir: string,
-	config: CLIConfig,
-	metadata: SchemaMetadata,
-) {
+export async function startServer(metadata: SchemaMetadata) {
 	const port = await findAvailablePort(DEFAULT_PORT);
 	const server = Bun.serve({
 		port,
@@ -48,7 +44,7 @@ export async function startServer(
 			}
 
 			if (pathname === "/tables") {
-				return htmlResponse(renderTablesPage(metadata, config.projectName));
+				return htmlResponse(renderTablesPage(metadata));
 			}
 
 			if (pathname.startsWith("/tables/")) {
@@ -59,12 +55,10 @@ export async function startServer(
 				if (!table) {
 					return new Response("Table not found", { status: 404 });
 				}
-				return htmlResponse(renderTableDetailPage(table, config.projectName));
+				return htmlResponse(renderTableDetailPage(table));
 			}
 
-			return htmlResponse(
-				renderDashboardPage(metadata, config.projectName, projectDir),
-			);
+			return htmlResponse(renderDashboardPage(metadata));
 		},
 	});
 
