@@ -10,5 +10,17 @@
 	},
 	"peerDependencies": {
 		"typescript": "^5"
+	},
+	"dependencies": {
+		"@ai-sdk/anthropic": "^3.0.58",
+		"@ai-sdk/deepseek": "^2.0.24",
+		"@ai-sdk/google": "^3.0.43",
+		"@ai-sdk/groq": "^3.0.29",
+		"@ai-sdk/mistral": "^3.0.24",
+		"@ai-sdk/moonshotai": "^2.0.10",
+		"@ai-sdk/openai": "^3.0.41",
+		"@ai-sdk/xai": "^3.0.67",
+		"ai": "^6.0.116",
+		"vercel-minimax-ai-provider": "^0.0.2"
 	}
 }

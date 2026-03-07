@@ -7,7 +7,6 @@ declare namespace Bun {
 	class SQL {
 		constructor(connectionString: string, options?: Record<string, unknown>);
 		close(): Promise<void>;
-		[Symbol.call]?: SQLTemplateTag;
 	}
 
 	function password(prompt: string): Promise<string>;
