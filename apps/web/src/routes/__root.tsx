@@ -11,7 +11,9 @@ import { Toaster } from "@/components/ui/sonner";
 import Header from "../components/header";
 import appCss from "../index.css?url";
 
-export const Route = createRootRouteWithContext()({
+export type RouterAppContext = {};
+
+export const Route = createRootRouteWithContext<RouterAppContext>()({
 	head: () => ({
 		meta: [
 			{
@@ -32,7 +34,6 @@ export const Route = createRootRouteWithContext()({
 			},
 		],
 	}),
-
 	component: RootDocument,
 });
 

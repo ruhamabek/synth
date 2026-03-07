@@ -29,6 +29,7 @@
 		"db:studio": "turbo -F @synth/db db:studio",
 		"db:generate": "turbo -F @synth/db db:generate",
 		"db:migrate": "turbo -F @synth/db db:migrate",
+		"db:introspect": "bun run packages/synth-core/src/utils/test-introspection.ts",
 		"check": "biome check --write ."
 	},
 	"dependencies": {

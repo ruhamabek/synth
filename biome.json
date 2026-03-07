@@ -25,7 +25,10 @@
 			"!**/.svelte-kit",
 			"!**/wrangler.jsonc",
 			"!**/.source",
-			"!**/convex/_generated"
+			"!**/convex/_generated",
+			"!**/node_modules",
+			"!**/routes/__root.tsx",
+			"!**/components/ui"
 		]
 	},
 	"formatter": {
@@ -38,7 +41,7 @@
 		"rules": {
 			"recommended": true,
 			"correctness": {
-				"useExhaustiveDependencies": "off"
+				"useExhaustiveDependencies": "info"
 			},
 			"nursery": {
 				"useSortedClasses": {

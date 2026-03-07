@@ -54,11 +54,11 @@ function RouteComponent() {
 							<p className="mb-1 font-semibold text-sm">
 								{message.role === "user" ? "You" : "AI Assistant"}
 							</p>
-							{message.parts?.map((part) => {
+							{message.parts?.map((part, index) => {
 								if (part.type === "text") {
 									return (
 										<Streamdown
-											key={message.id}
+											key={`${message.id}`}
 											isAnimating={
 												status === "streaming" && message.role === "assistant"
 											}
