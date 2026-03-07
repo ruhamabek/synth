@@ -14,16 +14,17 @@ import {
 	validateDatabaseConnection,
 	validateDatabaseUrl,
 } from "../database/index.js";
-import type { CLIConfig, SchemaMetadata } from "../lib/types.js";
+import type { CLIConfig, DatabaseType, SchemaMetadata } from "../lib/types.js";
 import { sanitizeProjectName, writeSecureJson } from "../lib/utils.js";
 import {
 	createReadlineInterface,
 	prompt,
 	promptRadioOption,
 	promptSecret,
-	promptValidated,
 } from "../prompts/index.js";
 import { startServer } from "../server/index.js";
+
+const DATABASE_TYPES: DatabaseType[] = ["sqlite", "postgres", "mysql"];
 
 export function printUsage() {
 	console.log("Usage:");
@@ -32,6 +33,29 @@ export function printUsage() {
 		"  synth start [name]   # start existing local dashboard project",
 	);
 	console.log("  synth --help");
+}
+
+function getDatabasePromptMessage(dbType: DatabaseType): string {
+	switch (dbType) {
+		case "sqlite":
+			return "SQLite file path (e.g., ./data.db): ";
+		case "postgres":
+			return "Postgres database URL (e.g., postgres://user:pass@localhost/db): ";
+		case "mysql":
+			return "MySQL database URL (e.g., mysql://user:pass@localhost/db): ";
+	}
+}
+
+function getDatabaseUrlFromInput(dbType: DatabaseType, input: string): string {
+	switch (dbType) {
+		case "sqlite":
+			// Convert file path to sqlite URL
+			return `sqlite://${input}`;
+		case "postgres":
+		case "mysql":
+			// Use the URL as-is
+			return input;
+	}
 }
 
 export async function runInit() {
@@ -51,12 +75,30 @@ export async function runInit() {
 			projectNameInput || defaultProjectName,
 		);
 
-		const databaseUrl = await promptValidated(
+		// Ask for database type first
+		console.log("\nDatabase type:");
+		DATABASE_TYPES.forEach((type, index) => {
+			console.log(`  [${index + 1}] ${type}`);
+		});
+
+		const databaseType = (await promptRadioOption(
 			rl,
-			"Postgres database URL: ",
-			validateDatabaseUrl,
-			"Please enter a valid postgres:// or postgresql:// URL.",
-		);
+			"Select database type (default: 1): ",
+			DATABASE_TYPES,
+			0,
+		)) as DatabaseType;
+
+		// Ask for database connection string based on the selected type
+		const promptMessage = getDatabasePromptMessage(databaseType);
+		const databaseUrlInput = await prompt(rl, promptMessage, true);
+
+		// Convert the input to a proper database URL
+		const databaseUrl = getDatabaseUrlFromInput(databaseType, databaseUrlInput);
+
+		// Validate the database URL
+		if (!validateDatabaseUrl(databaseUrl)) {
+			throw new Error("Invalid database URL. Please check the format.");
+		}
 
 		const enableAI = await prompt(
 			rl,
@@ -119,7 +161,7 @@ export async function runInit() {
 
 		const dbValidation = await validateDatabaseConnection(databaseUrl);
 		console.log(
-			`✓ Connected to database "${dbValidation.database}" successfully.`,
+			`✓ Connected to ${databaseType} database "${dbValidation.database}" successfully.`,
 		);
 
 		if (!shouldSkipAI && provider && apiKey && model) {
@@ -158,6 +200,7 @@ export async function runInit() {
 		const config: CLIConfig = {
 			version: 1,
 			projectName,
+			databaseType,
 			databaseUrl,
 			ai:
 				shouldSkipAI || !provider

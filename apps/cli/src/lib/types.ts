@@ -1,5 +1,7 @@
 import type { AIProvider } from "../ai/config.js";
 
+export type DatabaseType = "sqlite" | "postgres" | "mysql";
+
 export type BunSQL = {
 	<T = unknown>(
 		strings: TemplateStringsArray,
@@ -11,6 +13,7 @@ export type BunSQL = {
 export type CLIConfig = {
 	version: 1;
 	projectName: string;
+	databaseType: DatabaseType;
 	databaseUrl: string;
 	ai?: {
 		provider: AIProvider;
