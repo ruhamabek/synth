@@ -63,6 +63,8 @@ synth/
 - `bun run dev`: Start all applications in development mode
 - `bun run build`: Build all applications
 - `bun run check-types`: Check TypeScript types across all apps
+- `bun run cli:init`: Run interactive Synth CLI setup (DB + AI config, schema introspection, localhost dashboard)
+- `bun run cli:start`: Start a previously initialized local Synth dashboard
 - `bun run db:push`: Push schema changes to database
 - `bun run db:generate`: Generate database client/types
 - `bun run db:migrate`: Run database migrations

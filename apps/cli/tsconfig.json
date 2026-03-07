@@ -1,0 +1,3 @@
+{
+	"extends": "@synth/config/tsconfig.base.json"
+}
