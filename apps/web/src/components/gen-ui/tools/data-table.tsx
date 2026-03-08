@@ -1,4 +1,5 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { useAgentActions } from "../hooks/use-agent-actions";
 
 interface DataTableProps {
     table: string;
@@ -8,6 +9,7 @@ interface DataTableProps {
 }
 
 export function GenUIDataTable({ table, columns, title, mockData = [] }: DataTableProps) {
+    const { callTool } = useAgentActions();
     return (
         <div className="space-y-3 p-4 border rounded-xl bg-card/50 backdrop-blur-sm shadow-sm">
             <div className="flex items-center justify-between">
@@ -28,7 +30,11 @@ export function GenUIDataTable({ table, columns, title, mockData = [] }: DataTab
                     <TableBody>
                         {mockData.length > 0 ? (
                             mockData.map((row, i) => (
-                                <TableRow key={i}>
+                                <TableRow
+                                    key={i}
+                                    className="cursor-pointer hover:bg-muted/50 transition-colors"
+                                    onClick={() => callTool("onRowClick", { table, row, rowIndex: i })}
+                                >
                                     {columns.map((col) => (
                                         <TableCell key={col.field}>{row[col.field]}</TableCell>
                                     ))}

@@ -10,9 +10,31 @@ import { GenUIDataTable } from "./tools/data-table";
 import { GenUIMetricCard } from "./tools/metric-card";
 import { GenUIChart } from "./tools/chart";
 import { GenUIUserForm } from "./tools/user-form";
+import { ToastStack } from "./tools/toast-stack";
+import { AccordionContent } from "./tools/accordion-content";
+import { CrudDataTable } from "./tools/crud-data-table";
+import { AvatarCard } from "./tools/avatar-card";
+import { CartSummaryPanel } from "./tools/cart-summary-panel";
+import { ChecklistWithProgress } from "./tools/checklist-with-progress";
+import { ColumnToggleTable } from "./tools/column-toggle-table";
+import { EditableDataTable } from "./tools/editable-data-table";
+import { FallbackComponent } from "./tools/fallback-component";
+import { MetricCardGrid } from "./tools/metric-card-grid";
+import { MultiStepForm } from "./tools/multi-step-form";
+import { OrderStatusTracker } from "./tools/order-status-tracker";
+import { PaymentDetailsForm } from "./tools/payment-details-form";
+import { ProductCatalogGrid } from "./tools/product-catalog-grid";
+import { ProgressBar } from "./tools/progress-bar";
+import { RatingSelector } from "./tools/rating-selector";
+import { SearchWithFilters } from "./tools/search-with-filters";
+import { TabLayout } from "./tools/tab-layout";
+import { TeamMemberList } from "./tools/team-member-list";
+import { ThemeToggle } from "./tools/theme-toggle";
+import { ThreadedComments } from "./tools/threaded-comments";
+import { ToggleSwitch } from "./tools/toggle-switch";
 
 interface GenerativeUIChatProps {
-    schema: any;  
+    schema: any;
 }
 
 export function GenerativeUIChat({ schema }: GenerativeUIChatProps) {
@@ -119,6 +141,28 @@ export function GenerativeUIChat({ schema }: GenerativeUIChatProps) {
                                                             {toolName === 'renderMetricCard' && <GenUIMetricCard {...output} />}
                                                             {toolName === 'renderChart' && <GenUIChart {...output} />}
                                                             {toolName === 'renderUserForm' && <GenUIUserForm {...output} />}
+                                                            {toolName === 'renderToastStack' && <ToastStack {...output} />}
+                                                            {toolName === 'renderAccordion' && <AccordionContent {...output} />}
+                                                            {toolName === 'renderCrudDataTable' && <CrudDataTable {...output} />}
+                                                            {toolName === 'renderAvatarCard' && <AvatarCard {...output} />}
+                                                            {toolName === 'renderCartSummaryPanel' && <CartSummaryPanel {...output} />}
+                                                            {toolName === 'renderChecklistWithProgress' && <ChecklistWithProgress {...output} />}
+                                                            {toolName === 'renderColumnToggleTable' && <ColumnToggleTable {...output} />}
+                                                            {toolName === 'renderEditableDataTable' && <EditableDataTable {...output} />}
+                                                            {toolName === 'renderFallbackComponent' && <FallbackComponent {...output} />}
+                                                            {toolName === 'renderMetricCardGrid' && <MetricCardGrid {...output} />}
+                                                            {toolName === 'renderMultiStepForm' && <MultiStepForm {...output} />}
+                                                            {toolName === 'renderOrderStatusTracker' && <OrderStatusTracker {...output} />}
+                                                            {toolName === 'renderPaymentDetailsForm' && <PaymentDetailsForm {...output} />}
+                                                            {toolName === 'renderProductCatalogGrid' && <ProductCatalogGrid {...output} />}
+                                                            {toolName === 'renderProgressBar' && <ProgressBar {...output} />}
+                                                            {toolName === 'renderRatingSelector' && <RatingSelector {...output} />}
+                                                            {toolName === 'renderSearchWithFilters' && <SearchWithFilters {...output} />}
+                                                            {toolName === 'renderTabLayout' && <TabLayout {...output} />}
+                                                            {toolName === 'renderTeamMemberList' && <TeamMemberList {...output} />}
+                                                            {toolName === 'renderThemeToggle' && <ThemeToggle {...output} />}
+                                                            {toolName === 'renderThreadedComments' && <ThreadedComments {...output} />}
+                                                            {toolName === 'renderToggleSwitch' && <ToggleSwitch {...output} />}
                                                         </div>
                                                     )}
 
