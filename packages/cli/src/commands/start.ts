@@ -3,9 +3,17 @@ import { consola } from "consola";
 import { execa } from "execa";
 import open from "open";
 import { startApiServer } from "../api";
+import { killPort } from "../lib/port";
 import { ensureProjectDir, SYNTH_ROOT } from "../lib/workspace";
 
-export async function startCommand(projectName: string, _options: any) {
+export async function startCommand(
+	projectName: string,
+	_options: Record<string, unknown>,
+) {
+	// Define Ports (could be configurable in the future)
+	const apiPort = 4000;
+	const webPort = 3000;
+
 	try {
 		consola.start(`Starting synth project: ${projectName}`);
 
@@ -13,9 +21,9 @@ export async function startCommand(projectName: string, _options: any) {
 		const projectDir = await ensureProjectDir(projectName);
 		consola.info(`Project directory: ${projectDir}`);
 
-		// 2. Define Ports (could be configurable in the future)
-		const apiPort = 4000;
-		const webPort = 3000;
+		// Kill existing processes on these ports before starting
+		await killPort(apiPort);
+		await killPort(webPort);
 
 		// 3. Start API Server
 		const _apiServer = startApiServer(apiPort);
@@ -56,16 +64,30 @@ export async function startCommand(projectName: string, _options: any) {
 		}, 3000);
 
 		// 6. Handle Graceful Shutdown
-		process.on("SIGINT", async () => {
+		const cleanup = async () => {
 			consola.info("\nGracefully shutting down...");
 			webProcess.kill("SIGINT");
+
+			// Kill ports on exit as requested
+			await killPort(apiPort);
+			await killPort(webPort);
+
 			process.exit(0);
-		});
+		};
+
+		process.on("SIGINT", cleanup);
+		process.on("SIGTERM", cleanup);
 
 		// Wait for the web process to finish (or be killed)
 		await webProcess;
-	} catch (error: any) {
-		consola.error("Failed to start project:", error.message);
+	} catch (error: unknown) {
+		const message = error instanceof Error ? error.message : String(error);
+		consola.error("Failed to start project:", message);
+
+		// Ensure ports are killed even on failure
+		await killPort(apiPort);
+		await killPort(webPort);
+
 		process.exit(1);
 	}
 }

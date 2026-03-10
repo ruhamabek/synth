@@ -14,6 +14,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as GenUiRouteImport } from './routes/gen-ui'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as AiRouteImport } from './routes/ai'
+import { Route as ProjectNameRouteImport } from './routes/$projectName'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiGenUiRouteImport } from './routes/api/gen-ui'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
@@ -44,6 +45,11 @@ const AiRoute = AiRouteImport.update({
   path: '/ai',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProjectNameRoute = ProjectNameRouteImport.update({
+  id: '/$projectName',
+  path: '/$projectName',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -67,6 +73,7 @@ const ApiAiSplatRoute = ApiAiSplatRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/$projectName': typeof ProjectNameRoute
   '/ai': typeof AiRoute
   '/dashboard': typeof DashboardRoute
   '/gen-ui': typeof GenUiRoute
@@ -78,6 +85,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/$projectName': typeof ProjectNameRoute
   '/ai': typeof AiRoute
   '/dashboard': typeof DashboardRoute
   '/gen-ui': typeof GenUiRoute
@@ -90,6 +98,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/$projectName': typeof ProjectNameRoute
   '/ai': typeof AiRoute
   '/dashboard': typeof DashboardRoute
   '/gen-ui': typeof GenUiRoute
@@ -103,6 +112,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/$projectName'
     | '/ai'
     | '/dashboard'
     | '/gen-ui'
@@ -114,6 +124,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/$projectName'
     | '/ai'
     | '/dashboard'
     | '/gen-ui'
@@ -125,6 +136,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/$projectName'
     | '/ai'
     | '/dashboard'
     | '/gen-ui'
@@ -137,6 +149,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ProjectNameRoute: typeof ProjectNameRoute
   AiRoute: typeof AiRoute
   DashboardRoute: typeof DashboardRoute
   GenUiRoute: typeof GenUiRoute
@@ -184,6 +197,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AiRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/$projectName': {
+      id: '/$projectName'
+      path: '/$projectName'
+      fullPath: '/$projectName'
+      preLoaderRoute: typeof ProjectNameRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -217,6 +237,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ProjectNameRoute: ProjectNameRoute,
   AiRoute: AiRoute,
   DashboardRoute: DashboardRoute,
   GenUiRoute: GenUiRoute,
