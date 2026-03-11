@@ -51,6 +51,7 @@ export async function startCommand(
 				SYNTH_API_PORT: apiPort.toString(),
 				SYNTH_WEB_PORT: webPort.toString(),
 				SYNTH_MODE: "local",
+				VITE_SYNTH_API_URL: `http://localhost:${apiPort}`,
 			},
 			stdio: "inherit",
 		});

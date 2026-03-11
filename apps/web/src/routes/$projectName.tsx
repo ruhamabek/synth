@@ -1,19 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
 	ArrowLeft,
-	Code,
 	Columns,
 	Database,
 	Layout,
-	MessageSquare,
-	Send,
 	Sparkles,
 	Table2,
 } from "lucide-react";
 import { useState } from "react";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { JsonRenderChat } from "@/components/gen-ui/json-render-chat";
 
 export const Route = createFileRoute("/$projectName")({
 	component: ProjectDashboard,
@@ -224,89 +221,5 @@ function DatabaseModule() {
 }
 
 function AIModule() {
-	return (
-		<div className="flex h-full w-full">
-			{/* Left: Chat Interface */}
-			<div className="flex w-[380px] shrink-0 flex-col border-r bg-background">
-				<div className="flex items-center gap-2 border-b px-4 py-3">
-					<MessageSquare className="h-4 w-4 text-muted-foreground" />
-					<h3 className="font-medium text-sm">Chat</h3>
-				</div>
-				<ScrollArea className="flex-1 p-4">
-					<div className="space-y-5">
-						<div className="flex flex-col gap-1.5">
-							<div className="mb-1 flex items-center gap-2">
-								<div className="flex h-5 w-5 items-center justify-center rounded bg-foreground">
-									<Sparkles className="h-3 w-3 text-background" />
-								</div>
-								<span className="font-medium text-[11px] text-muted-foreground">
-									Synth AI
-								</span>
-							</div>
-							<div className="rounded-xl rounded-tl-sm border bg-muted/40 px-4 py-3 text-sm leading-relaxed">
-								What would you like to build? I can generate UI components
-								customized to your schema and data.
-							</div>
-						</div>
-					</div>
-				</ScrollArea>
-
-				{/* Input Area */}
-				<div className="border-t p-3">
-					<form
-						className="flex flex-col overflow-hidden rounded-xl border bg-muted/30 transition-all focus-within:border-foreground/20"
-						onSubmit={(e) => e.preventDefault()}
-					>
-						<textarea
-							placeholder="Describe your UI..."
-							className="min-h-[56px] w-full resize-none bg-transparent px-4 py-3 text-sm placeholder:text-muted-foreground/50 focus:outline-none"
-							rows={2}
-						/>
-						<div className="flex items-center justify-between border-border/50 border-t px-3 py-2">
-							<span className="font-medium text-[10px] text-muted-foreground/60 uppercase tracking-wider">
-								Enter to send
-							</span>
-							<Button
-								type="submit"
-								size="icon"
-								className="h-7 w-7 rounded-full"
-							>
-								<Send className="-ml-0.5 h-3 w-3" />
-							</Button>
-						</div>
-					</form>
-				</div>
-			</div>
-
-			{/* Right: Preview */}
-			<div className="flex flex-1 flex-col">
-				<div className="flex items-center justify-between border-b px-4 py-3">
-					<span className="text-muted-foreground text-sm">Preview</span>
-					<Button
-						variant="outline"
-						size="sm"
-						className="h-7 gap-1.5 rounded-lg border-dashed px-3 text-[11px]"
-					>
-						<Code className="h-3 w-3" />
-						React / Tailwind
-					</Button>
-				</div>
-				<div className="flex flex-1 items-center justify-center p-6">
-					<div className="relative flex w-full max-w-xl flex-col items-center justify-center overflow-hidden rounded-xl border p-16">
-						{/* Dot grid background */}
-						<div className="absolute inset-0 bg-[radial-gradient(oklch(0.3_0_0)_1px,transparent_1px)] opacity-20 [background-size:20px_20px]" />
-						<div className="relative z-10 flex flex-col items-center">
-							<div className="mb-4 flex h-10 w-10 items-center justify-center rounded-full border bg-muted/30">
-								<Sparkles className="h-4 w-4 text-muted-foreground/50" />
-							</div>
-							<p className="font-medium text-sm">Canvas is empty</p>
-							<p className="mt-1 text-muted-foreground text-xs">
-								Describe a UI to generate it
-							</p>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-	);
+	return <JsonRenderChat />;
 }
