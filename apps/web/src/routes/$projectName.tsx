@@ -7,18 +7,46 @@ import {
 	Sparkles,
 	Table2,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { JsonRenderChat } from "@/components/gen-ui/json-render-chat";
+import { CliOfflinePage } from "@/components/cli-offline-page";
 
 export const Route = createFileRoute("/$projectName")({
 	component: ProjectDashboard,
 });
 
+const CLI_URL = "http://localhost:4000";
+
 function ProjectDashboard() {
 	const { projectName } = Route.useParams();
 	const [activeTab, setActiveTab] = useState<"database" | "ai">("database");
+	const [cliStatus, setCliStatus] = useState<"loading" | "online" | "offline">("loading");
+
+	useEffect(() => {
+		checkCli();
+	}, []);
+
+	const checkCli = async () => {
+		setCliStatus("loading");
+		try {
+			const res = await fetch(`${CLI_URL}/api/health`, { 
+				signal: AbortSignal.timeout(5000)
+			});
+			if (res.ok) {
+				setCliStatus("online");
+			} else {
+				setCliStatus("offline");
+			}
+		} catch {
+			setCliStatus("offline");
+		}
+	};
+
+	if (cliStatus === "offline") {
+		return <CliOfflinePage onRetry={checkCli} />;
+	}
 
 	return (
 		<div className="flex h-screen w-full flex-col bg-background font-sans text-foreground">

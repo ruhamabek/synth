@@ -20,6 +20,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import { CliOfflinePage } from "@/components/cli-offline-page";
 
 export const Route = createFileRoute("/")({
 	component: HomeComponent,
@@ -45,8 +46,11 @@ function HomeComponent() {
 	}, []);
 
 	const checkCli = async () => {
+		setCliStatus("loading");
 		try {
-			const res = await fetch(`${CLI_URL}/api/health`);
+			const res = await fetch(`${CLI_URL}/api/health`, { 
+				signal: AbortSignal.timeout(5000) // 5 second timeout
+			});
 			if (res.ok) {
 				setCliStatus("online");
 			} else {
@@ -96,6 +100,11 @@ function HomeComponent() {
 			setIsCreating(false);
 		}
 	};
+
+	// Show CLI offline page if CLI is offline
+	if (cliStatus === "offline") {
+		return <CliOfflinePage onRetry={checkCli} />;
+	}
 
 	return (
 		<div className="flex min-h-screen flex-col bg-background">

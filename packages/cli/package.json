@@ -20,9 +20,7 @@
 		"commander": "^12.1.0",
 		"consola": "^3.2.3",
 		"dotenv": "catalog:",
-		"execa": "^9.5.1",
 		"hono": "^4.6.1",
-		"open": "^10.1.0",
 		"picocolors": "^1.1.1",
 		"zod": "catalog:"
 	},
