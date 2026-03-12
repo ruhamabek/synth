@@ -20,13 +20,13 @@ export async function introspectSchema(path: string): Promise<FullSchemaType> {
 		// Use dynamic import and @vite-ignore so bundlers don't crash
 		const sqliteModule = await import(/* @vite-ignore */ "bun:sqlite");
 		Database = sqliteModule.Database;
-	} catch (e) {
+	} catch (_e) {
 		throw new Error(
 			"bun:sqlite module is not available. Please ensure you are running in a Bun environment.",
 		);
 	}
 
-	let db;
+	let db: any;
 	try {
 		db = new Database(dbPath, { readonly: true });
 	} catch (error) {

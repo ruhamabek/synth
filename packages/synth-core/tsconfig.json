@@ -10,15 +10,8 @@
 		"esModuleInterop": true,
 		"skipLibCheck": true,
 		"forceConsistentCasingInFileNames": true,
-		"types": [
-			"bun"
-		]
+		"types": ["bun"]
 	},
-	"include": [
-		"src/**/*"
-	],
-	"exclude": [
-		"node_modules",
-		"dist"
-	]
+	"include": ["src/**/*"],
+	"exclude": ["node_modules", "dist"]
 }

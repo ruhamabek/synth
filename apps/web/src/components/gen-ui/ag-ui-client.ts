@@ -5,22 +5,22 @@
 
 // Add TypeScript interface for window
 declare global {
-  interface Window {
-    registeredComponents?: Record<string, any>
-  }
+	interface Window {
+		registeredComponents?: Record<string, any>;
+	}
 }
 
 // Store for registered tools
-const registeredTools: Record<string, any> = {}
+const registeredTools: Record<string, any> = {};
 
 // Make registered tools available globally for debugging
 if (typeof window !== "undefined") {
-  window.registeredComponents = registeredTools
+	window.registeredComponents = registeredTools;
 }
 
 // Event emitter for AG-UI events
-type Listener = (event: any) => void
-const listeners: Listener[] = []
+type Listener = (event: any) => void;
+const listeners: Listener[] = [];
 
 /**
  * Register a tool with the AG-UI protocol
@@ -28,16 +28,18 @@ const listeners: Listener[] = []
  * @param component React component to render
  */
 export function registerTool(name: string, component: any) {
-  // Ensure name is lowercase for consistency
-  const nameLower = name.toLowerCase()
-  registeredTools[nameLower] = component
-  console.log(`Registered tool: ${nameLower}`)
+	// Ensure name is lowercase for consistency
+	const nameLower = name.toLowerCase();
+	registeredTools[nameLower] = component;
+	console.log(`Registered tool: ${nameLower}`);
 
-  // Log total registered tools
-  if (typeof window !== "undefined") {
-    console.log(`Total registered tools: ${Object.keys(registeredTools).length}`)
-    window.registeredComponents = registeredTools
-  }
+	// Log total registered tools
+	if (typeof window !== "undefined") {
+		console.log(
+			`Total registered tools: ${Object.keys(registeredTools).length}`,
+		);
+		window.registeredComponents = registeredTools;
+	}
 }
 
 /**
@@ -46,16 +48,16 @@ export function registerTool(name: string, component: any) {
  * @returns The registered component or undefined
  */
 export function getTool(name: string) {
-  // Ensure name is lowercase for consistency
-  const nameLower = name.toLowerCase()
-  const component = registeredTools[nameLower]
+	// Ensure name is lowercase for consistency
+	const nameLower = name.toLowerCase();
+	const component = registeredTools[nameLower];
 
-  if (!component) {
-    console.warn(`Tool not found: ${nameLower}`)
-    console.warn(`Available tools: ${Object.keys(registeredTools).join(", ")}`)
-  }
+	if (!component) {
+		console.warn(`Tool not found: ${nameLower}`);
+		console.warn(`Available tools: ${Object.keys(registeredTools).join(", ")}`);
+	}
 
-  return component
+	return component;
 }
 
 /**
@@ -63,12 +65,12 @@ export function getTool(name: string) {
  * @param response Response data
  */
 export function sendResponse(response: any) {
-  listeners.forEach((listener) =>
-    listener({
-      type: "agentResponse",
-      payload: response,
-    }),
-  )
+	for (const listener of listeners) {
+		listener({
+			type: "agentResponse",
+			payload: response,
+		});
+	}
 }
 
 /**
@@ -76,12 +78,12 @@ export function sendResponse(response: any) {
  * @param toolCall Tool call data
  */
 export function callTool(toolCall: { tool: string; args: any }) {
-  listeners.forEach((listener) =>
-    listener({
-      type: "toolCall",
-      payload: toolCall,
-    }),
-  )
+	for (const listener of listeners) {
+		listener({
+			type: "toolCall",
+			payload: toolCall,
+		});
+	}
 }
 
 /**
@@ -90,11 +92,11 @@ export function callTool(toolCall: { tool: string; args: any }) {
  * @returns Unsubscribe function
  */
 export function subscribe(listener: Listener) {
-  listeners.push(listener)
-  return () => {
-    const index = listeners.indexOf(listener)
-    if (index !== -1) {
-      listeners.splice(index, 1)
-    }
-  }
+	listeners.push(listener);
+	return () => {
+		const index = listeners.indexOf(listener);
+		if (index !== -1) {
+			listeners.splice(index, 1);
+		}
+	};
 }

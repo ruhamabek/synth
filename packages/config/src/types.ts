@@ -1,5 +1,5 @@
 import type { z } from "zod";
-import * as schemas from "./schema";
+import type * as schemas from "./schema";
 
 // Export all inferred types
 export type SynthConfig = z.infer<typeof schemas.SynthConfigSchema>;

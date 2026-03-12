@@ -1,21 +1,21 @@
 {
-    "name": "@synth/ai",
-    "version": "0.1.0",
-    "type": "module",
-    "main": "./src/index.ts",
-    "scripts": {
-        "check-types": "tsc --noEmit"
-    },
-    "dependencies": {
-        "@ai-sdk/google": "latest",
-        "@synth/config": "workspace:*",
-        "@synth/core": "workspace:*",
-        "@synth/types": "workspace:*",
-        "ai": "^6.0.3",
-        "zod": "catalog:"
-    },
-    "devDependencies": {
-        "bun-types": "^1.3.10",
-        "typescript": "catalog:"
-    }
+	"name": "@synth/ai",
+	"version": "0.1.0",
+	"type": "module",
+	"main": "./src/index.ts",
+	"scripts": {
+		"check-types": "tsc --noEmit"
+	},
+	"dependencies": {
+		"@ai-sdk/google": "latest",
+		"@synth/config": "workspace:*",
+		"@synth/core": "workspace:*",
+		"@synth/types": "workspace:*",
+		"ai": "^6.0.3",
+		"zod": "catalog:"
+	},
+	"devDependencies": {
+		"bun-types": "^1.3.10",
+		"typescript": "catalog:"
+	}
 }

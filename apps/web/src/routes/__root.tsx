@@ -8,7 +8,6 @@ import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 
 import { Toaster } from "@/components/ui/sonner";
 
-import Header from "../components/header";
 import appCss from "../index.css?url";
 
 export type RouterAppContext = {};
@@ -24,13 +23,31 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 				content: "width=device-width, initial-scale=1",
 			},
 			{
-				title: "My App",
+				title: "Synth — Database Studio",
+			},
+			{
+				name: "description",
+				content:
+					"AI-powered database management and exploration tool for your local projects.",
 			},
 		],
 		links: [
 			{
 				rel: "stylesheet",
 				href: appCss,
+			},
+			{
+				rel: "preconnect",
+				href: "https://fonts.googleapis.com",
+			},
+			{
+				rel: "preconnect",
+				href: "https://fonts.gstatic.com",
+				crossOrigin: "anonymous",
+			},
+			{
+				rel: "stylesheet",
+				href: "https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap",
 			},
 		],
 	}),
@@ -44,11 +61,8 @@ function RootDocument() {
 			<head>
 				<HeadContent />
 			</head>
-			<body>
-				<div className="grid h-svh grid-rows-[auto_1fr]">
-					<Header />
-					<Outlet />
-				</div>
+			<body className="antialiased">
+				<Outlet />
 				<Toaster richColors />
 				<TanStackRouterDevtools position="bottom-left" />
 				<Scripts />
