@@ -1,11 +1,13 @@
 import "dotenv/config";
 import fs from "node:fs/promises";
-import { google } from "@ai-sdk/google";
+import { createGoogleGenerativeAI, google } from "@ai-sdk/google";
+import { createOpenAI } from "@ai-sdk/openai";
 import { defineCatalog } from "@json-render/core";
 import { schema } from "@json-render/react/schema";
 import { shadcnComponentDefinitions } from "@json-render/shadcn/catalog";
 import { unifiedIntrospect } from "@synth/core";
-import { streamText } from "ai";
+import { convertToModelMessages, streamText, type UIMessage } from "ai";
+import type { LanguageModel } from "ai";
 import { consola } from "consola";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
@@ -24,6 +26,8 @@ import {
 	getProjectSchemaPath,
 	PROJECTS_ROOT,
 	readProjectConfig,
+	readAIModels,
+	writeAIModels,
 	writeProjectConfig,
 } from "../lib/workspace";
 
@@ -196,27 +200,164 @@ app.post("/api/validate-ai", async (c) => {
 	}
 });
 
+// Create LanguageModel from saved config (provider, model id, apiKey)
+function createModelFromConfig(
+	provider: string,
+	modelId: string,
+	apiKey: string,
+): LanguageModel {
+	if (provider === "google") {
+		const googleProvider = createGoogleGenerativeAI({ apiKey });
+		return googleProvider(modelId);
+	}
+	if (provider === "openai") {
+		const openai = createOpenAI({ apiKey });
+		return openai(modelId);
+	}
+	throw new Error(`Unsupported AI provider: ${provider}`);
+}
+
+// GET /api/ai-models — list models without apiKey
+app.get("/api/ai-models", async (c) => {
+	try {
+		const { models } = await readAIModels();
+		const safe = models.map(({ id, name, provider, model }) => ({
+			id,
+			name,
+			provider,
+			model,
+		}));
+		return c.json({ models: safe });
+	} catch (error: any) {
+		consola.error("AI models list error:", error);
+		return c.json({ success: false, error: error.message }, 500);
+	}
+});
+
+// POST /api/ai-models — save new model
+const postAIModelsSchema = z.object({
+	name: z.string().optional(),
+	provider: z.string(),
+	model: z.string(),
+	apiKey: z.string(),
+});
+
+app.post("/api/ai-models", async (c) => {
+	try {
+		const body = postAIModelsSchema.parse(await c.req.json());
+		const { name, provider, model, apiKey } = body;
+		const config = await readAIModels();
+		const id = crypto.randomUUID();
+		config.models.push({ id, name, provider, model, apiKey });
+		await writeAIModels(config);
+		return c.json({
+			id,
+			name,
+			provider,
+			model,
+		});
+	} catch (error: any) {
+		consola.error("AI model save error:", error);
+		return c.json({ success: false, error: error.message }, 400);
+	}
+});
+
+// POST /api/ai/chat — stream chat using selected model
+const postAIChatSchema = z.object({
+	messages: z.array(z.any()),
+	modelId: z.string(),
+});
+
+app.post("/api/ai/chat", async (c) => {
+	try {
+		const body = await c.req.json();
+		const parsed = postAIChatSchema.safeParse(body);
+		if (!parsed.success) {
+			return c.json(
+				{ error: "Invalid body: messages and modelId required" },
+				400,
+			);
+		}
+		const { messages, modelId } = parsed.data;
+		const config = await readAIModels();
+		const modelConfig = config.models.find((m) => m.id === modelId);
+		if (!modelConfig) {
+			return c.json({ error: "Model not found", modelId }, 400);
+		}
+		const model = createModelFromConfig(
+			modelConfig.provider,
+			modelConfig.model,
+			modelConfig.apiKey,
+		);
+		const result = streamText({
+			model,
+			messages: await convertToModelMessages(messages as UIMessage[]),
+		});
+		return result.toUIMessageStreamResponse();
+	} catch (error: any) {
+		consola.error("AI chat error:", error);
+		return c.json(
+			{ error: "Failed to process AI request", message: error?.message },
+			500,
+		);
+	}
+});
+
 // AI JSON Render endpoint - generates UI using JSON Render format
 app.post("/api/ai-json-render", async (c) => {
 	try {
-		const body = await c.req.json();
+		const body = await c.req.json().catch(() => ({}));
 		const prompt = body.prompt;
-		const projectName = body.projectName;
-		const conversationId = body.conversationId;
+		const context =
+			body.context && typeof body.context === "object"
+				? (body.context as Record<string, unknown>)
+				: undefined;
+		const projectName =
+			typeof body.projectName === "string"
+				? body.projectName
+				: typeof context?.projectName === "string"
+					? context.projectName
+					: undefined;
+		const conversationId =
+			typeof body.conversationId === "string"
+				? body.conversationId
+				: typeof context?.conversationId === "string"
+					? context.conversationId
+					: undefined;
+		const modelId =
+			typeof body.modelId === "string"
+				? body.modelId
+				: typeof context?.modelId === "string"
+					? context.modelId
+					: (c.req.query("modelId") ?? undefined);
 
 		if (!prompt) {
 			return c.json({ error: "No prompt provided in request body." }, 400);
 		}
 
-		// Check if API key is available
-		if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
-			return c.json(
-				{
-					error:
-						"API key not configured. Please set GOOGLE_GENERATIVE_AI_API_KEY environment variable.",
-				},
-				500,
+		let model: LanguageModel;
+		if (modelId) {
+			const config = await readAIModels();
+			const modelConfig = config.models.find((m) => m.id === modelId);
+			if (!modelConfig) {
+				return c.json({ error: "Model not found", modelId }, 400);
+			}
+			model = createModelFromConfig(
+				modelConfig.provider,
+				modelConfig.model,
+				modelConfig.apiKey,
 			);
+		} else {
+			if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
+				return c.json(
+					{
+						error:
+							"API key not configured. Set GOOGLE_GENERATIVE_AI_API_KEY or add a model in the AI chat.",
+					},
+					500,
+				);
+			}
+			model = google("gemini-2.5-flash");
 		}
 
 		// Load conversation history if provided
@@ -250,7 +391,7 @@ app.post("/api/ai-json-render", async (c) => {
 			: prompt;
 
 		const result = streamText({
-			model: google("gemini-2.5-flash"),
+			model,
 			system: systemPrompt,
 			prompt: enhancedPrompt,
 		});

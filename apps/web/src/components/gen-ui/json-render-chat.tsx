@@ -11,16 +11,60 @@ import {
 import type { FullSchemaType } from "@synth/types";
 import {
 	ArrowLeft,
+	ChevronDownIcon,
 	Code,
 	MessageSquare,
 	Plus,
+	PlusIcon,
 	SendIcon,
 	SparklesIcon,
 	Trash2,
 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
+import {
+	Dialog,
+	DialogContent,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+} from "@/components/ui/dialog";
+import {
+	DropdownMenu,
+	DropdownMenuContent,
+	DropdownMenuItem,
+	DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import { registry } from "@/lib/json-render-registry";
+import { generateRandomId } from "@/lib/utils";
+
+const PROVIDER_MODELS: Record<string, string[]> = {
+	google: [
+		"gemini-2.5-flash",
+		"gemini-2.0-flash",
+		"gemini-1.5-flash",
+		"gemini-1.5-pro",
+	],
+	openai: ["gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "gpt-3.5-turbo"],
+};
+
+type AIModelSummary = {
+	id: string;
+	name?: string;
+	provider: string;
+	model: string;
+};
+
+const CLI_URL = "http://localhost:4000";
 
 interface JsonRenderChatProps {
 	projectName: string;
@@ -57,11 +101,48 @@ export function JsonRenderChat({
 	const lastPersistedSpecRef = useRef<string | null>(null);
 	const scrollRef = useRef<HTMLDivElement>(null);
 
-	// CLI API URL
-	const CLI_URL = "http://localhost:4000";
+	// AI model selection (same as /ai page)
+	const [models, setModels] = useState<AIModelSummary[]>([]);
+	const [selectedModelId, setSelectedModelId] = useState<string | null>(null);
+	const [addModalOpen, setAddModalOpen] = useState(false);
+	const [modelsError, setModelsError] = useState<string | null>(null);
+	const [addProvider, setAddProvider] = useState<string>("google");
+	const [addModel, setAddModel] = useState<string>(
+		PROVIDER_MODELS.google[0] ?? "",
+	);
+	const [addApiKey, setAddApiKey] = useState("");
+	const [addSaving, setAddSaving] = useState(false);
+	const [addError, setAddError] = useState<string | null>(null);
 
+	const fetchModels = useCallback(async () => {
+		setModelsError(null);
+		try {
+			const res = await fetch(`${CLI_URL}/api/ai-models`);
+			if (!res.ok) throw new Error("Failed to load models");
+			const data = await res.json();
+			const list = Array.isArray(data.models) ? data.models : [];
+			setModels(list);
+			setSelectedModelId((prev) => {
+				if (list.length === 0) return null;
+				if (!prev || !list.some((m: AIModelSummary) => m.id === prev))
+					return list[0].id;
+				return prev;
+			});
+		} catch (e) {
+			setModelsError(
+				"Could not load models. Start the Synth CLI to manage models.",
+			);
+			setModels([]);
+		}
+	}, []);
+
+	useEffect(() => {
+		fetchModels();
+	}, [fetchModels]);
+
+	const aiJsonRenderApi = `${CLI_URL}/api/ai-json-render`;
 	const { spec, isStreaming, error, send, clear } = useUIStream({
-		api: `${CLI_URL}/api/ai-json-render`,
+		api: aiJsonRenderApi,
 	});
 
 	// Scroll to bottom when messages change
@@ -179,10 +260,52 @@ export function JsonRenderChat({
 		}
 	};
 
+	const handleAddModel = () => {
+		setAddModalOpen(true);
+		setAddError(null);
+		setAddProvider("google");
+		setAddModel(PROVIDER_MODELS.google[0] ?? "");
+		setAddApiKey("");
+	};
+
+	const handleSaveModel = async (e: React.FormEvent) => {
+		e.preventDefault();
+		setAddError(null);
+		if (!addApiKey.trim()) {
+			setAddError("API key is required");
+			return;
+		}
+		setAddSaving(true);
+		try {
+			const res = await fetch(`${CLI_URL}/api/ai-models`, {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					provider: addProvider,
+					model: addModel,
+					apiKey: addApiKey.trim(),
+				}),
+			});
+			const data = await res.json();
+			if (!res.ok) throw new Error(data.error ?? "Failed to save model");
+			setAddModalOpen(false);
+			setSelectedModelId(data.id);
+			await fetchModels();
+		} catch (err: unknown) {
+			setAddError(err instanceof Error ? err.message : "Failed to save model");
+		} finally {
+			setAddSaving(false);
+		}
+	};
+
+	const hasModels = models.length > 0;
+	const selectedModel = models.find((m) => m.id === selectedModelId);
+	const canSend = hasModels && !!selectedModelId;
+
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 		const text = input.trim();
-		if (!text || isStreaming) return;
+		if (!text || isStreaming || !canSend) return;
 
 		// Add user message to display immediately
 		setMessages((prev) => [...prev, { role: "user", content: text }]);
@@ -258,7 +381,11 @@ export function JsonRenderChat({
 			}
 		}
 
-		send(enhancedPrompt);
+		send(enhancedPrompt, {
+			modelId: selectedModelId,
+			projectName,
+			conversationId: currentConversationId,
+		});
 		setInput("");
 	};
 
@@ -382,6 +509,11 @@ export function JsonRenderChat({
 							</div>
 						</div>
 
+						{modelsError && (
+							<div className="border-b border-amber-200 bg-amber-50 px-3 py-2 text-amber-800 text-[10px] dark:border-amber-800 dark:bg-amber-950/30 dark:text-amber-200">
+								{modelsError}
+							</div>
+						)}
 						{/* Chat Content */}
 						<div ref={scrollRef} className="flex-1 overflow-y-auto p-4">
 							<div className="space-y-5">
@@ -404,7 +536,7 @@ export function JsonRenderChat({
 
 								{messages.map((msg) => (
 									<div
-										key={msg.content.slice(0, 30)}
+										key={msg.content.slice(0, 30) + generateRandomId()} // Use content snippet + random ID for key
 										className={`flex ${
 											msg.role === "user" ? "justify-end" : "justify-start"
 										}`}
@@ -450,18 +582,63 @@ export function JsonRenderChat({
 									rows={2}
 									disabled={isStreaming}
 								/>
-								<div className="flex items-center justify-between border-border/50 border-t px-3 py-2">
+								<div className="flex items-center justify-between gap-2 border-border/50 border-t px-3 py-2">
 									<span className="font-medium text-[10px] text-muted-foreground/60 uppercase tracking-wider">
 										Enter to send
 									</span>
-									<Button
-										type="submit"
-										size="icon"
-										className="h-7 w-7 rounded-full transition-transform active:scale-95"
-										disabled={isStreaming || !input.trim()}
-									>
-										<SendIcon className="-ml-0.5 h-3 w-3" />
-									</Button>
+									<div className="flex items-center gap-1.5">
+										{hasModels ? (
+											<DropdownMenu>
+												<DropdownMenuTrigger
+													render={
+														<Button
+															type="button"
+															variant="outline"
+															size="sm"
+															className="h-7 shrink-0 gap-1 rounded-full text-[10px]"
+														>
+															{selectedModel?.name ??
+																selectedModel?.model ??
+																"Model"}
+															<ChevronDownIcon className="size-3" />
+														</Button>
+													}
+												/>
+												<DropdownMenuContent align="end" className="z-[100]">
+													{models.map((m) => (
+														<DropdownMenuItem
+															key={m.id}
+															onClick={() => setSelectedModelId(m.id)}
+														>
+															{m.name ?? m.model}
+														</DropdownMenuItem>
+													))}
+													<DropdownMenuItem onClick={handleAddModel}>
+														<PlusIcon className="mr-2 size-3" />
+														Add model
+													</DropdownMenuItem>
+												</DropdownMenuContent>
+											</DropdownMenu>
+										) : (
+											<Button
+												type="button"
+												variant="outline"
+												size="sm"
+												className="h-7 shrink-0 rounded-full text-[10px]"
+												onClick={handleAddModel}
+											>
+												Add model
+											</Button>
+										)}
+										<Button
+											type="submit"
+											size="icon"
+											className="h-7 w-7 rounded-full transition-transform active:scale-95"
+											disabled={isStreaming || !input.trim() || !canSend}
+										>
+											<SendIcon className="-ml-0.5 h-3 w-3" />
+										</Button>
+									</div>
 								</div>
 							</form>
 						</div>
@@ -545,6 +722,85 @@ export function JsonRenderChat({
 					)}
 				</div>
 			</div>
+
+			<Dialog
+				open={addModalOpen}
+				onOpenChange={(open) => setAddModalOpen(open === true)}
+			>
+				<DialogContent className="sm:max-w-sm">
+					<DialogHeader>
+						<DialogTitle>Add AI model</DialogTitle>
+					</DialogHeader>
+					<form onSubmit={handleSaveModel} className="grid gap-4">
+						<div className="grid gap-2">
+							<Label htmlFor="add-provider">Provider</Label>
+							<Select
+								value={addProvider}
+								onValueChange={(v) => {
+									const provider = v ?? "google";
+									setAddProvider(provider);
+									const opts = PROVIDER_MODELS[provider];
+									setAddModel(opts?.[0] ?? "");
+								}}
+							>
+								<SelectTrigger id="add-provider" size="sm">
+									<SelectValue placeholder="Select provider" />
+								</SelectTrigger>
+								<SelectContent>
+									{Object.keys(PROVIDER_MODELS).map((p) => (
+										<SelectItem key={p} value={p}>
+											{p.charAt(0).toUpperCase() + p.slice(1)}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+						</div>
+						<div className="grid gap-2">
+							<Label htmlFor="add-model">Model</Label>
+							<Select
+								value={addModel}
+								onValueChange={(v) => setAddModel(v ?? "")}
+							>
+								<SelectTrigger id="add-model" size="sm">
+									<SelectValue placeholder="Select model" />
+								</SelectTrigger>
+								<SelectContent>
+									{(PROVIDER_MODELS[addProvider] ?? []).map((m) => (
+										<SelectItem key={m} value={m}>
+											{m}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+						</div>
+						<div className="grid gap-2">
+							<Label htmlFor="add-api-key">API key</Label>
+							<Input
+								id="add-api-key"
+								type="password"
+								value={addApiKey}
+								onChange={(e) => setAddApiKey(e.target.value)}
+								placeholder="Your API key"
+								autoComplete="off"
+								className="font-mono text-xs"
+							/>
+						</div>
+						{addError && <p className="text-destructive text-xs">{addError}</p>}
+						<DialogFooter showCloseButton={false}>
+							<Button
+								type="button"
+								variant="outline"
+								onClick={() => setAddModalOpen(false)}
+							>
+								Cancel
+							</Button>
+							<Button type="submit" disabled={addSaving}>
+								{addSaving ? "Saving…" : "Save"}
+							</Button>
+						</DialogFooter>
+					</form>
+				</DialogContent>
+			</Dialog>
 		</div>
 	);
 }

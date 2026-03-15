@@ -153,7 +153,7 @@ function HomeComponent() {
 							/>
 							<span className="text-muted-foreground text-xs">
 								{cliStatus === "online"
-									? "CLI Connected"
+									? "Connected"
 									: cliStatus === "loading"
 										? "Connecting..."
 										: "CLI Offline"}
@@ -347,8 +347,7 @@ function HomeComponent() {
 			{/* Footer */}
 			<footer className="border-t">
 				<div className="mx-auto flex h-12 max-w-5xl items-center justify-between px-6 text-muted-foreground text-xs">
-					<span>Synth CLI</span>
-					<span>localhost:4000</span>
+					<span>Synth</span>
 				</div>
 			</footer>
 		</div>

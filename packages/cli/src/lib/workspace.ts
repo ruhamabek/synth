@@ -41,3 +41,37 @@ export async function writeProjectConfig(projectName: string, config: any) {
 	const configPath = getProjectConfigPath(projectName);
 	await fs.writeFile(configPath, JSON.stringify(config, null, 2));
 }
+
+// AI models config (~/.synth/ai-models.json)
+export interface AIModelConfig {
+	id: string;
+	name?: string;
+	provider: string;
+	model: string;
+	apiKey: string;
+}
+
+export interface AIModelsFile {
+	models: AIModelConfig[];
+}
+
+export function getAIModelsPath() {
+	return path.join(SYNTH_ROOT, "ai-models.json");
+}
+
+export async function readAIModels(): Promise<AIModelsFile> {
+	const configPath = getAIModelsPath();
+	try {
+		const data = await fs.readFile(configPath, "utf-8");
+		const parsed = JSON.parse(data) as AIModelsFile;
+		return Array.isArray(parsed?.models) ? parsed : { models: [] };
+	} catch (_error) {
+		return { models: [] };
+	}
+}
+
+export async function writeAIModels(config: AIModelsFile) {
+	await fs.mkdir(SYNTH_ROOT, { recursive: true });
+	const configPath = getAIModelsPath();
+	await fs.writeFile(configPath, JSON.stringify(config, null, 2));
+}
