@@ -22,6 +22,7 @@
 		"@synth/auth": "workspace:*",
 		"@synth/core": "workspace:*",
 		"@synth/env": "workspace:*",
+		"@synth/types": "workspace:*",
 		"@tailwindcss/vite": "^4.1.8",
 		"@tanstack/react-form": "^1.28.0",
 		"@tanstack/react-query": "^5.80.6",

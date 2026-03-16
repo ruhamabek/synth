@@ -7,7 +7,7 @@ import {
 	Sparkles,
 	Table2,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { CliOfflinePage } from "@/components/cli-offline-page";
 import { JsonRenderChat } from "@/components/gen-ui/json-render-chat";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -251,5 +251,140 @@ function DatabaseModule() {
 }
 
 function AIModule() {
-	return <JsonRenderChat />;
+	const { projectName } = Route.useParams();
+	const [conversations, setConversations] = useState<any[]>([]);
+	const [selectedConversationId, setSelectedConversationId] =
+		useState<string>();
+	const [schema, setSchema] = useState<any>(null);
+	const [loading, setLoading] = useState(true);
+
+	const loadConversations = useCallback(async () => {
+		const isMounted = true;
+		try {
+			const res = await fetch(`${CLI_URL}/api/conversations/${projectName}`);
+
+			if (!res.ok) {
+				console.error(
+					`Conversations request failed with status: ${res.status}`,
+				);
+				if (isMounted) {
+					setConversations([]);
+				}
+				return;
+			}
+
+			const data = await res.json();
+			if (data.success && Array.isArray(data.conversations) && isMounted) {
+				setConversations(data.conversations);
+			} else if (isMounted) {
+				console.error("Invalid conversations response:", data);
+				setConversations([]);
+			}
+		} catch (error) {
+			console.error("Failed to load conversations:", error);
+			if (isMounted) {
+				setConversations([]);
+			}
+		}
+	}, [projectName]);
+
+	const loadSchema = useCallback(async () => {
+		const isMounted = true;
+		try {
+			const res = await fetch(`${CLI_URL}/api/projects/${projectName}`);
+
+			if (!res.ok) {
+				console.error(`Schema request failed with status: ${res.status}`);
+				if (isMounted) {
+					setSchema(null);
+					setLoading(false);
+				}
+				return;
+			}
+
+			const data = await res.json();
+			console.log("Schema response:", data);
+
+			if (data.success && data.schema && isMounted) {
+				setSchema(data.schema);
+			} else if (isMounted) {
+				console.error("Invalid schema response:", data);
+				setSchema(null);
+			}
+		} catch (error) {
+			console.error("Failed to load schema:", error);
+			if (isMounted) {
+				setSchema(null);
+			}
+		} finally {
+			if (isMounted) {
+				setLoading(false);
+			}
+		}
+	}, [projectName]);
+
+	useEffect(() => {
+		loadConversations();
+		loadSchema();
+
+		// Cleanup function
+		return () => {
+			// Any cleanup can go here
+		};
+	}, [loadConversations, loadSchema]);
+
+	if (loading) {
+		return (
+			<div className="flex h-full items-center justify-center">
+				<div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+			</div>
+		);
+	}
+
+	return (
+		<div className="flex h-full w-full">
+			{/* Chat Area & Merged Sidebar */}
+			{!loading && schema ? (
+				<JsonRenderChat
+					projectName={projectName}
+					schema={schema}
+					conversationId={selectedConversationId}
+					conversations={conversations}
+					onConversationChange={(id) => {
+						setSelectedConversationId(id);
+						// Refresh list when switching
+						loadConversations();
+					}}
+					onNewMessage={() => {
+						// Refresh conversation list when new messages are sent
+						setTimeout(() => {
+							loadConversations();
+						}, 100);
+					}}
+					onLoadConversations={loadConversations}
+				/>
+			) : !loading ? (
+				<div className="flex flex-1 flex-col items-center justify-center">
+					<div className="text-center">
+						<p className="font-medium text-foreground text-sm">
+							Unable to load project
+						</p>
+						<p className="mt-2 text-muted-foreground text-xs">
+							Project "{projectName}" not found or CLI is not running.
+						</p>
+						<p className="mt-4 text-muted-foreground text-xs">
+							Make sure the CLI is running:{" "}
+							<code className="rounded bg-muted px-2 py-1">
+								synth start {projectName}
+							</code>
+						</p>
+					</div>
+				</div>
+			) : (
+				<div className="flex flex-1 items-center justify-center">
+					<div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+				</div>
+			)}
+		</div>
+	);
 }

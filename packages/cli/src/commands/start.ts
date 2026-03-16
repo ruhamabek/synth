@@ -21,7 +21,7 @@ export async function startCommand(
 		await killPort(apiPort);
 
 		// 2. Start API Server
-		const _apiServer = startApiServer(apiPort);
+		startApiServer(apiPort);
 		consola.success(`API server started on http://localhost:${apiPort}`);
 
 		consola.info("\n🚀 Synth CLI is running!");

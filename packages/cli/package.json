@@ -12,10 +12,12 @@
 	},
 	"dependencies": {
 		"@ai-sdk/google": "^3.0.43",
+		"@ai-sdk/openai": "^1.0.0",
 		"@json-render/core": "^0.12.0",
 		"@json-render/react": "^0.12.0",
 		"@json-render/shadcn": "^0.12.0",
 		"@synth/core": "workspace:*",
+		"@synth/types": "workspace:*",
 		"ai": "^6.0.116",
 		"commander": "^12.1.0",
 		"consola": "^3.2.3",
@@ -25,6 +27,7 @@
 		"zod": "catalog:"
 	},
 	"devDependencies": {
+		"@synth/config": "workspace:*",
 		"@types/node": "catalog:",
 		"typescript": "catalog:"
 	}
