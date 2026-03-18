@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
-import { GenerativeUIChat } from "@/components/gen-ui/chat";
+import { JsonRenderChat } from "@/components/gen-ui/json-render-chat";
 
 const genUISearchSchema = z.object({
 	schema: z
@@ -42,7 +42,7 @@ function GenUIRouteComponent() {
 				</div>
 			) : (
 				<div className="h-full w-full max-w-6xl">
-					<GenerativeUIChat schema={schema} />
+					<JsonRenderChat projectName="default" schema={schema} />
 				</div>
 			)}
 		</div>

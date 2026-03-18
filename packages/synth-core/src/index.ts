@@ -84,3 +84,4 @@ export * as redis from "./redis";
 export * as sqlite from "./sqlite";
 export * as sqlserver from "./sqlserver";
 export * from "./utils/schema-prompt";
+export * from "./catalog";

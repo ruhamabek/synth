@@ -1,5 +1,5 @@
 import { consola } from "consola";
-import { startApiServer } from "../api";
+import { startApiServer } from "../api/app";
 import { killPort } from "../lib/port";
 import { ensureProjectDir } from "../lib/workspace";
 

@@ -16,7 +16,6 @@ import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as AiRouteImport } from './routes/ai'
 import { Route as ProjectNameRouteImport } from './routes/$projectName'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ApiGenUiRouteImport } from './routes/api/gen-ui'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as ApiAiSplatRouteImport } from './routes/api/ai/$'
 
@@ -55,11 +54,6 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiGenUiRoute = ApiGenUiRouteImport.update({
-  id: '/api/gen-ui',
-  path: '/api/gen-ui',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
@@ -79,7 +73,6 @@ export interface FileRoutesByFullPath {
   '/gen-ui': typeof GenUiRoute
   '/login': typeof LoginRoute
   '/success': typeof SuccessRoute
-  '/api/gen-ui': typeof ApiGenUiRoute
   '/api/ai/$': typeof ApiAiSplatRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
@@ -91,7 +84,6 @@ export interface FileRoutesByTo {
   '/gen-ui': typeof GenUiRoute
   '/login': typeof LoginRoute
   '/success': typeof SuccessRoute
-  '/api/gen-ui': typeof ApiGenUiRoute
   '/api/ai/$': typeof ApiAiSplatRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
@@ -104,7 +96,6 @@ export interface FileRoutesById {
   '/gen-ui': typeof GenUiRoute
   '/login': typeof LoginRoute
   '/success': typeof SuccessRoute
-  '/api/gen-ui': typeof ApiGenUiRoute
   '/api/ai/$': typeof ApiAiSplatRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
@@ -118,7 +109,6 @@ export interface FileRouteTypes {
     | '/gen-ui'
     | '/login'
     | '/success'
-    | '/api/gen-ui'
     | '/api/ai/$'
     | '/api/auth/$'
   fileRoutesByTo: FileRoutesByTo
@@ -130,7 +120,6 @@ export interface FileRouteTypes {
     | '/gen-ui'
     | '/login'
     | '/success'
-    | '/api/gen-ui'
     | '/api/ai/$'
     | '/api/auth/$'
   id:
@@ -142,7 +131,6 @@ export interface FileRouteTypes {
     | '/gen-ui'
     | '/login'
     | '/success'
-    | '/api/gen-ui'
     | '/api/ai/$'
     | '/api/auth/$'
   fileRoutesById: FileRoutesById
@@ -155,7 +143,6 @@ export interface RootRouteChildren {
   GenUiRoute: typeof GenUiRoute
   LoginRoute: typeof LoginRoute
   SuccessRoute: typeof SuccessRoute
-  ApiGenUiRoute: typeof ApiGenUiRoute
   ApiAiSplatRoute: typeof ApiAiSplatRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
@@ -211,13 +198,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/gen-ui': {
-      id: '/api/gen-ui'
-      path: '/api/gen-ui'
-      fullPath: '/api/gen-ui'
-      preLoaderRoute: typeof ApiGenUiRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/auth/$': {
       id: '/api/auth/$'
       path: '/api/auth/$'
@@ -243,7 +223,6 @@ const rootRouteChildren: RootRouteChildren = {
   GenUiRoute: GenUiRoute,
   LoginRoute: LoginRoute,
   SuccessRoute: SuccessRoute,
-  ApiGenUiRoute: ApiGenUiRoute,
   ApiAiSplatRoute: ApiAiSplatRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
 }

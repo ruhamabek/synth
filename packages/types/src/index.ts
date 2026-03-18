@@ -66,3 +66,4 @@ export * from "./databases/mariadb";
 export * from "./databases/mysql";
 export * from "./databases/sqlite";
 export * from "./databases/sqlserver";
+export * from "./conversation";

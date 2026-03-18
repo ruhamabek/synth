@@ -1,390 +1,66 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import {
-	ArrowLeft,
-	Columns,
-	Database,
-	Layout,
-	Sparkles,
-	Table2,
-} from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { createFileRoute} from "@tanstack/react-router";
+import {  useState } from "react";
 import { CliOfflinePage } from "@/components/cli-offline-page";
-import { JsonRenderChat } from "@/components/gen-ui/json-render-chat";
+import { DatabaseModule } from "@/components/project/DatabaseModule";
+import { AIModule } from "@/components/project/AIModule";
+import { useCliStatus } from "@/hooks/useCliStatus";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Database, Sparkles } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 export const Route = createFileRoute("/$projectName")({
 	component: ProjectDashboard,
 });
 
-const CLI_URL = "http://localhost:4000";
 
 function ProjectDashboard() {
 	const { projectName } = Route.useParams();
 	const [activeTab, setActiveTab] = useState<"database" | "ai">("database");
-	const [cliStatus, setCliStatus] = useState<"loading" | "online" | "offline">(
-		"loading",
-	);
 
-	useEffect(() => {
-		checkCli();
-	}, []);
+	const { status, retry } = useCliStatus();
 
-	const checkCli = async () => {
-		setCliStatus("loading");
-		try {
-			const res = await fetch(`${CLI_URL}/api/health`, {
-				signal: AbortSignal.timeout(5000),
-			});
-			if (res.ok) {
-				setCliStatus("online");
-			} else {
-				setCliStatus("offline");
-			}
-		} catch {
-			setCliStatus("offline");
-		}
-	};
-
-	if (cliStatus === "offline") {
-		return <CliOfflinePage onRetry={checkCli} />;
+	if (status === "offline") {
+		return <CliOfflinePage onRetry={retry} />;
 	}
 
 	return (
-		<div className="flex h-screen w-full flex-col bg-background font-sans text-foreground">
-			{/* Top Navigation */}
-			<header className="flex h-12 shrink-0 items-center border-b bg-background">
-				<div className="flex h-full w-full items-center justify-between px-4">
-					{/* Left: Back + project name */}
-					<div className="flex items-center gap-3">
-						<Link
-							to="/"
-							className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-						>
-							<ArrowLeft className="h-4 w-4" />
-						</Link>
-						<div className="h-4 w-px bg-border" />
-						<div className="flex items-center gap-2.5">
-							<div className="flex h-6 w-6 items-center justify-center rounded bg-foreground">
-								<Database className="h-3 w-3 text-background" />
-							</div>
-							<span className="font-medium text-sm tracking-tight">
-								{projectName}
-							</span>
-						</div>
+		<div className="flex h-screen flex-col">
+			<header className="flex h-12 items-center justify-between border-b px-4">
+				<div className="flex items-center gap-2">
+					<div className="h-6 w-6 rounded bg-primary/10 flex items-center justify-center">
+						<span className="text-[10px] font-bold text-primary">S</span>
 					</div>
+					<h1 className="text-sm font-semibold">{projectName}</h1>
+				</div>
 
-					{/* Center: Tab switcher */}
-					<div className="absolute left-1/2 flex -translate-x-1/2 items-center">
-						<div className="flex items-center rounded-lg border bg-muted/50 p-0.5">
-							<button
-								type="button"
-								onClick={() => setActiveTab("database")}
-								className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 font-medium text-xs transition-all ${
-									activeTab === "database"
-										? "bg-background text-foreground shadow-sm"
-										: "text-muted-foreground hover:text-foreground"
-								}`}
-							>
-								<Database className="h-3 w-3" />
-								Database
-							</button>
-							<button
-								type="button"
-								onClick={() => setActiveTab("ai")}
-								className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 font-medium text-xs transition-all ${
-									activeTab === "ai"
-										? "bg-background text-foreground shadow-sm"
-										: "text-muted-foreground hover:text-foreground"
-								}`}
-							>
-								<Sparkles className="h-3 w-3" />
-								AI Studio
-							</button>
-						</div>
-					</div>
+				<Tabs 
+					value={activeTab} 
+					onValueChange={(v) => setActiveTab(v as "database" | "ai")}
+				>
+					<TabsList variant="line">
+						<TabsTrigger value="database" className="gap-2">
+							<Database className="h-3.5 w-3.5" />
+							Database
+						</TabsTrigger>
+						<TabsTrigger value="ai" className="gap-2">
+							<Sparkles className="h-3.5 w-3.5" />
+							AI Explorer
+						</TabsTrigger>
+					</TabsList>
+				</Tabs>
 
-					{/* Right: theme + avatar */}
-					<div className="flex items-center gap-2">
-						<ThemeToggle />
-						<div className="h-4 w-px bg-border" />
-						<div className="flex h-7 w-7 items-center justify-center rounded-full border font-medium text-muted-foreground text-xs">
-							U
-						</div>
-					</div>
+				<div className="flex items-center gap-2">
+					<ThemeToggle />
 				</div>
 			</header>
 
-			{/* Main Content Area */}
 			<main className="flex-1 overflow-hidden">
-				{activeTab === "database" ? <DatabaseModule /> : <AIModule />}
-			</main>
-		</div>
-	);
-}
-
-function DatabaseModule() {
-	const [selectedTable, setSelectedTable] = useState<string | null>(null);
-	const [viewMode, setViewMode] = useState<"structure" | "records">(
-		"structure",
-	);
-	const tables = ["users", "posts", "comments", "profiles"];
-
-	return (
-		<div className="flex h-full w-full">
-			{/* Sidebar */}
-			<div className="flex w-56 shrink-0 flex-col border-r bg-background">
-				<div className="px-4 py-3">
-					<p className="font-medium text-[11px] text-muted-foreground uppercase tracking-wider">
-						Tables
-					</p>
-				</div>
-				<ScrollArea className="flex-1 px-2">
-					<div className="space-y-0.5 pb-4">
-						{tables.map((table) => (
-							<button
-								type="button"
-								key={table}
-								onClick={() => setSelectedTable(table)}
-								className={`flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-left text-sm transition-colors ${
-									selectedTable === table
-										? "bg-accent font-medium text-foreground"
-										: "text-muted-foreground hover:bg-accent/50 hover:text-foreground"
-								}`}
-							>
-								<Table2 className="h-3.5 w-3.5 shrink-0" />
-								<span className="truncate">{table}</span>
-							</button>
-						))}
-					</div>
-				</ScrollArea>
-			</div>
-
-			{/* Main Area */}
-			<div className="flex flex-1 flex-col">
-				{selectedTable ? (
-					<>
-						{/* Table Header */}
-						<div className="flex items-center justify-between border-b px-6 py-3">
-							<div className="flex items-center gap-2">
-								<Table2 className="h-4 w-4 text-muted-foreground" />
-								<h2 className="font-medium text-sm">{selectedTable}</h2>
-							</div>
-							<div className="flex items-center rounded-lg border bg-muted/50 p-0.5">
-								<button
-									type="button"
-									onClick={() => setViewMode("structure")}
-									className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 font-medium text-xs transition-all ${
-										viewMode === "structure"
-											? "bg-background text-foreground shadow-sm"
-											: "text-muted-foreground hover:text-foreground"
-									}`}
-								>
-									<Columns className="h-3 w-3" />
-									Structure
-								</button>
-								<button
-									type="button"
-									onClick={() => setViewMode("records")}
-									className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 font-medium text-xs transition-all ${
-										viewMode === "records"
-											? "bg-background text-foreground shadow-sm"
-											: "text-muted-foreground hover:text-foreground"
-									}`}
-								>
-									<Layout className="h-3 w-3" />
-									Records
-								</button>
-							</div>
-						</div>
-
-						{/* Table Content Placeholder */}
-						<ScrollArea className="flex-1 p-6">
-							<div className="animate-fade-in rounded-lg border bg-card">
-								<div className="p-10">
-									<div className="flex flex-col items-center justify-center text-center">
-										{viewMode === "structure" ? (
-											<>
-												<Columns className="mb-3 h-8 w-8 text-muted-foreground/30" />
-												<h3 className="font-medium text-sm">Table Structure</h3>
-												<p className="mt-1 max-w-[220px] text-muted-foreground text-xs">
-													Column definitions, types, and constraints for{" "}
-													<span className="font-mono text-foreground/80">
-														{selectedTable}
-													</span>
-												</p>
-											</>
-										) : (
-											<>
-												<Layout className="mb-3 h-8 w-8 text-muted-foreground/30" />
-												<h3 className="font-medium text-sm">Table Records</h3>
-												<p className="mt-1 max-w-[220px] text-muted-foreground text-xs">
-													Browse and manage data in{" "}
-													<span className="font-mono text-foreground/80">
-														{selectedTable}
-													</span>
-												</p>
-											</>
-										)}
-									</div>
-								</div>
-							</div>
-						</ScrollArea>
-					</>
+				{activeTab === "database" ? (
+					<DatabaseModule />
 				) : (
-					/* Empty state: no table selected */
-					<div className="flex flex-1 items-center justify-center">
-						<div className="flex flex-col items-center text-center">
-							<div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full border bg-muted/50">
-								<Table2 className="h-5 w-5 text-muted-foreground/50" />
-							</div>
-							<h3 className="font-medium text-sm">Select a table</h3>
-							<p className="mt-1 max-w-[220px] text-muted-foreground text-xs">
-								Choose a table from the sidebar to view its schema and data.
-							</p>
-						</div>
-					</div>
+					<AIModule projectName={projectName} />
 				)}
-			</div>
-		</div>
-	);
-}
-
-function AIModule() {
-	const { projectName } = Route.useParams();
-	const [conversations, setConversations] = useState<any[]>([]);
-	const [selectedConversationId, setSelectedConversationId] =
-		useState<string>();
-	const [schema, setSchema] = useState<any>(null);
-	const [loading, setLoading] = useState(true);
-
-	const loadConversations = useCallback(async () => {
-		const isMounted = true;
-		try {
-			const res = await fetch(`${CLI_URL}/api/conversations/${projectName}`);
-
-			if (!res.ok) {
-				console.error(
-					`Conversations request failed with status: ${res.status}`,
-				);
-				if (isMounted) {
-					setConversations([]);
-				}
-				return;
-			}
-
-			const data = await res.json();
-			if (data.success && Array.isArray(data.conversations) && isMounted) {
-				setConversations(data.conversations);
-			} else if (isMounted) {
-				console.error("Invalid conversations response:", data);
-				setConversations([]);
-			}
-		} catch (error) {
-			console.error("Failed to load conversations:", error);
-			if (isMounted) {
-				setConversations([]);
-			}
-		}
-	}, [projectName]);
-
-	const loadSchema = useCallback(async () => {
-		const isMounted = true;
-		try {
-			const res = await fetch(`${CLI_URL}/api/projects/${projectName}`);
-
-			if (!res.ok) {
-				console.error(`Schema request failed with status: ${res.status}`);
-				if (isMounted) {
-					setSchema(null);
-					setLoading(false);
-				}
-				return;
-			}
-
-			const data = await res.json();
-			console.log("Schema response:", data);
-
-			if (data.success && data.schema && isMounted) {
-				setSchema(data.schema);
-			} else if (isMounted) {
-				console.error("Invalid schema response:", data);
-				setSchema(null);
-			}
-		} catch (error) {
-			console.error("Failed to load schema:", error);
-			if (isMounted) {
-				setSchema(null);
-			}
-		} finally {
-			if (isMounted) {
-				setLoading(false);
-			}
-		}
-	}, [projectName]);
-
-	useEffect(() => {
-		loadConversations();
-		loadSchema();
-
-		// Cleanup function
-		return () => {
-			// Any cleanup can go here
-		};
-	}, [loadConversations, loadSchema]);
-
-	if (loading) {
-		return (
-			<div className="flex h-full items-center justify-center">
-				<div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-			</div>
-		);
-	}
-
-	return (
-		<div className="flex h-full w-full">
-			{/* Chat Area & Merged Sidebar */}
-			{!loading && schema ? (
-				<JsonRenderChat
-					projectName={projectName}
-					schema={schema}
-					conversationId={selectedConversationId}
-					conversations={conversations}
-					onConversationChange={(id) => {
-						setSelectedConversationId(id);
-						// Refresh list when switching
-						loadConversations();
-					}}
-					onNewMessage={() => {
-						// Refresh conversation list when new messages are sent
-						setTimeout(() => {
-							loadConversations();
-						}, 100);
-					}}
-					onLoadConversations={loadConversations}
-				/>
-			) : !loading ? (
-				<div className="flex flex-1 flex-col items-center justify-center">
-					<div className="text-center">
-						<p className="font-medium text-foreground text-sm">
-							Unable to load project
-						</p>
-						<p className="mt-2 text-muted-foreground text-xs">
-							Project "{projectName}" not found or CLI is not running.
-						</p>
-						<p className="mt-4 text-muted-foreground text-xs">
-							Make sure the CLI is running:{" "}
-							<code className="rounded bg-muted px-2 py-1">
-								synth start {projectName}
-							</code>
-						</p>
-					</div>
-				</div>
-			) : (
-				<div className="flex flex-1 items-center justify-center">
-					<div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-				</div>
-			)}
+			</main>
 		</div>
 	);
 }

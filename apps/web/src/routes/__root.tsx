@@ -9,6 +9,8 @@ import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { Toaster } from "@/components/ui/sonner";
 
 import appCss from "../index.css?url";
+import { ThemeProvider } from "next-themes";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 export type RouterAppContext = {};
 
@@ -23,7 +25,7 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 				content: "width=device-width, initial-scale=1",
 			},
 			{
-				title: "Synth — Database Studio",
+				title: "Synth — The Creator Studio",
 			},
 			{
 				name: "description",
@@ -54,17 +56,21 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 
 	component: RootDocument,
 });
-
+const queryClient = new QueryClient();
 function RootDocument() {
 	return (
-		<html lang="en">
+		<html lang="en" suppressHydrationWarning>
 			<head>
 				<HeadContent />
 			</head>
 			<body className="antialiased">
-				<Outlet />
-				<Toaster richColors />
-				<TanStackRouterDevtools position="bottom-right" />
+				<ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+					<QueryClientProvider client={queryClient}>
+						<Outlet />
+						<Toaster richColors />
+						<TanStackRouterDevtools position="bottom-right" />
+					</QueryClientProvider>
+				</ThemeProvider>
 				<Scripts />
 			</body>
 		</html>
